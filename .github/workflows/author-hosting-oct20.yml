@@ -1,0 +1,38 @@
+name: Author Hosting current-base comparison
+on:
+  push:
+    branches: [validation/hosting-oct20]
+permissions:
+  contents: read
+env:
+  CI: true
+  NO_COLOR: true
+jobs:
+  test:
+    name: Linux Node24 ${{ matrix.source }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        source: [head, base]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Select complete pinned source
+        run: |
+          git diff --exit-code 6b0b364af69a23411b501afac9711af8d505937f -- . ':!.github/workflows/author-hosting-oct20.yml'
+          if [ '${{ matrix.source }}' = base ]; then
+            git restore --source=4e6eb923dd5e4a081eb227baaee58df85c17d044 -- . ':!.github/workflows/author-hosting-oct20.yml'
+          fi
+          git diff --exit-code ${{ matrix.source == 'base' && '4e6eb923dd5e4a081eb227baaee58df85c17d044' || '6b0b364af69a23411b501afac9711af8d505937f' }} -- . ':!.github/workflows/author-hosting-oct20.yml'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: npm-shrinkwrap.json
+      - run: npm install -g npm@9.5
+      - run: npm ci
+      - name: Exact existing build, lint, compile and complete unit tests
+        run: npm test -- -- --forbid-only
