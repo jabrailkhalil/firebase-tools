@@ -19,17 +19,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          ref: ${{ matrix.source == 'base' && '4e6eb923dd5e4a081eb227baaee58df85c17d044' || '6b0b364af69a23411b501afac9711af8d505937f' }}
+          persist-credentials: false
       - name: Select complete pinned source
+        env:
+          EXPECTED: ${{ matrix.source == 'base' && '4e6eb923dd5e4a081eb227baaee58df85c17d044' || '6b0b364af69a23411b501afac9711af8d505937f' }}
         run: |
-          git diff --exit-code 6b0b364af69a23411b501afac9711af8d505937f -- . ':!.github/workflows/author-hosting-oct20.yml'
-          if [ '${{ matrix.source }}' = base ]; then
-            git restore --source=4e6eb923dd5e4a081eb227baaee58df85c17d044 -- . ':!.github/workflows/author-hosting-oct20.yml'
-          fi
-          git diff --exit-code ${{ matrix.source == 'base' && '4e6eb923dd5e4a081eb227baaee58df85c17d044' || '6b0b364af69a23411b501afac9711af8d505937f' }} -- . ':!.github/workflows/author-hosting-oct20.yml'
+          test "$(git rev-parse HEAD)" = "$EXPECTED"
+          git diff --exit-code "$EXPECTED" -- .
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
           cache: npm
           cache-dependency-path: npm-shrinkwrap.json
       - run: npm install -g npm@9.5
