@@ -1,0 +1,38 @@
+name: Author Hosting current-base comparison
+on:
+  push:
+    branches: [validation/hosting-oct22]
+permissions:
+  contents: read
+env:
+  CI: true
+  NO_COLOR: true
+jobs:
+  test:
+    name: Linux Node24 ${{ matrix.source }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        source: [head, base]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.source == 'base' && '2be6c48cd0ab8dcf2ad0be12f80d51cb94ec1924' || '61a5a3f6142af61e028e5e15b7c54d8dce27a1f4' }}
+          persist-credentials: false
+      - name: Select complete pinned source
+        env:
+          EXPECTED: ${{ matrix.source == 'base' && '2be6c48cd0ab8dcf2ad0be12f80d51cb94ec1924' || '61a5a3f6142af61e028e5e15b7c54d8dce27a1f4' }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED"
+          git diff --exit-code "$EXPECTED" -- .
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: npm-shrinkwrap.json
+      - run: npm install -g npm@9.5
+      - run: npm ci
+      - name: Exact existing build, lint, compile and complete unit tests
+        run: npm test -- -- --forbid-only
