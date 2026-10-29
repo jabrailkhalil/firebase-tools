@@ -1,7 +1,7 @@
 name: Author Hosting current-base comparison
 on:
   push:
-    branches: [validation/hosting-oct22]
+    branches: [validation/hosting-oct29]
 permissions:
   contents: read
 env:
@@ -19,11 +19,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ matrix.source == 'base' && '2be6c48cd0ab8dcf2ad0be12f80d51cb94ec1924' || '61a5a3f6142af61e028e5e15b7c54d8dce27a1f4' }}
+          ref: ${{ matrix.source == 'base' && 'bb495945a0be25cb5a98aa2158e613f4b8cac62a' || '37e11344ddea1c3d32ca54c5a56758b5e571e358' }}
           persist-credentials: false
       - name: Select complete pinned source
         env:
-          EXPECTED: ${{ matrix.source == 'base' && '2be6c48cd0ab8dcf2ad0be12f80d51cb94ec1924' || '61a5a3f6142af61e028e5e15b7c54d8dce27a1f4' }}
+          EXPECTED: ${{ matrix.source == 'base' && 'bb495945a0be25cb5a98aa2158e613f4b8cac62a' || '37e11344ddea1c3d32ca54c5a56758b5e571e358' }}
         run: |
           test "$(git rev-parse HEAD)" = "$EXPECTED"
           git diff --exit-code "$EXPECTED" -- .
