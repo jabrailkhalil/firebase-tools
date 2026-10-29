@@ -1,5 +1,6 @@
 name: Author Hosting current-base comparison
 on:
+  workflow_dispatch:
   push:
     branches: [validation/hosting-oct29]
 permissions:
